@@ -9,6 +9,7 @@
 * Workspace support (#1776432)
 * Allow to restore versions (#1799932)
 * Show date and time for date properties (#1802237)
+* Export to xml file
 
 ===Bugfixes===
 * Doesn't work with JBoss higher than 4.0.x (#1775013)
