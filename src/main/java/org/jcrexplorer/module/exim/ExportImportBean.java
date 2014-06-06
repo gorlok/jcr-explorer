@@ -1,12 +1,20 @@
 package org.jcrexplorer.module.exim;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringBufferInputStream;
 
+import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.jcr.ImportUUIDBehavior;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.RepositoryException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
 import org.jcrexplorer.Constants;
 import org.jcrexplorer.module.ModuleBean;
@@ -56,6 +64,43 @@ public class ExportImportBean extends ModuleBean {
 		addInfoMessage("Data export successful.");
 		return "goToExportResults";
 	}
+	
+	public String downloadFile() 
+	throws PathNotFoundException, RepositoryException {
+	    HttpServletResponse response = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();  
+
+	    response.reset(); 
+	    response.setContentType("text/xml");  
+	    response.setHeader("Content-Disposition", "attachment;filename=export.xml");  
+	    //response.setContentLength(...);  
+	    ServletOutputStream out = null;  
+	    try {  
+	        out = response.getOutputStream();
+	        
+			if (exportView == EXPORT_SYSTEM_VIEW) {
+				contentBean.getSession().exportSystemView(
+						contentBean.getCurrentNode().getNode().getPath(), out,
+						!exportBinaries, !exportRecursive);
+			} else {
+				contentBean.getSession().exportDocumentView(
+						contentBean.getCurrentNode().getNode().getPath(), out,
+						!exportBinaries, !exportRecursive);
+			}
+			
+	        FacesContext.getCurrentInstance().getResponseComplete();
+	    } catch (IOException err) {  
+	        err.printStackTrace();  
+	    } finally {  
+	        try {  
+	            if (out != null) {  
+	                out.close();  
+	            }  
+	        } catch (IOException err) {  
+	            err.printStackTrace();  
+	        }  
+	    }
+	    return null;
+	}	
 
 	public String getExportResults() {
 		return exportResults;

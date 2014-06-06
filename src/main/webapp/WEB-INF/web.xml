@@ -103,6 +103,15 @@
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 
+	<!-- Download Servlet -->
+	<servlet>
+		<servlet-name>DownloadServlet</servlet-name>
+		<servlet-class>
+			org.jcrexplorer.DownloadServlet
+		</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
 	<!-- Faces Servlet -->
 	<servlet>
 		<servlet-name>Faces Servlet</servlet-name>
@@ -122,6 +131,12 @@
 		<servlet-name>BinaryViewerServlet</servlet-name>
 		<url-pattern>/binaryViewer/*</url-pattern>
 	</servlet-mapping>
+	
+	<servlet-mapping>
+		<servlet-name>DownloadServlet</servlet-name>
+		<url-pattern>/download/*</url-pattern>
+	</servlet-mapping>
+	
 	<servlet-mapping>
 		<servlet-name>Faces Servlet</servlet-name>
 		<url-pattern>*.jsf</url-pattern>
