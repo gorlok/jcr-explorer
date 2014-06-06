@@ -2,8 +2,6 @@ package org.jcrexplorer.util.property;
 
 import java.io.IOException;
 
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
 import javax.jcr.Property;
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
@@ -13,7 +11,6 @@ import javax.jcr.ValueFormatException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.myfaces.custom.fileupload.UploadedFile;
-import org.jcrexplorer.ContentBean;
 import org.jcrexplorer.JsfLogger;
 import org.jcrexplorer.util.value.MultiValueWrapper;
 import org.jcrexplorer.util.value.ValueWrapper;

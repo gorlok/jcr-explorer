@@ -27,7 +27,7 @@
 				<h:inputText id="Username" value="#{LoginBean.username}" />
 				<h:message for="Username" />
 				<h:outputLabel for="Password" value="Password" />
-				<h:inputText id="Password" value="#{LoginBean.password}" />
+				<h:inputSecret id="Password" value="#{LoginBean.password}" />
 				<h:message for="Password" />
 			</h:panelGrid>
 

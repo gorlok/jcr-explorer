@@ -1,6 +1,7 @@
 package org.jcrexplorer;
 
 import java.io.IOException;
+import java.util.zip.GZIPOutputStream;
 
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
@@ -20,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 public class DownloadServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private Log logger = LogFactory.getLog(this.getClass());
 
 	@Override
@@ -28,21 +29,18 @@ public class DownloadServlet extends HttpServlet {
 
 		HttpSession httpSession = request.getSession(false);
 		if (httpSession == null) {
-			logger
-					.warn("No active HttpSession found, binary value cannot be displayed. Is that call really from the explorer app?");
+			logger.warn("No active HttpSession found, binary value cannot be displayed. Is that call really from the explorer app?");
 			return;
 		}
 
 		Object o = httpSession.getAttribute("ContentBean");
 		if (o == null) {
-			logger
-					.warn("ContentBean could not be found in HttpSession, so JCR session cannot be retrieved. Binary value can't be displayed.");
+			logger.warn("ContentBean could not be found in HttpSession, so JCR session cannot be retrieved. Binary value can't be displayed.");
 			return;
 		}
 
 		if (!(o instanceof ContentBean)) {
-			logger
-					.warn("ContentBean object bound in HttpSession is not of class org.jcrexplorer.ContentBean, so JCR session cannot be retrieved. Binary value can't be displayed.");
+			logger.warn("ContentBean object bound in HttpSession is not of class org.jcrexplorer.ContentBean, so JCR session cannot be retrieved. Binary value can't be displayed.");
 			return;
 		}
 
@@ -54,30 +52,39 @@ public class DownloadServlet extends HttpServlet {
 			return;
 		}
 
-	    response.reset(); 
-	    response.setContentType("text/xml");  
-	    response.setHeader("Content-Disposition", "attachment;filename=export.xml");  
-	    ServletOutputStream out = null;  
-	    try {  
-	        out = response.getOutputStream();
-				contentBean.getSession().exportSystemView(
-						contentBean.getCurrentNode().getNode().getPath(), out,
-						false, false); // boolean skipBinary, boolean noRecurse
-	    } catch (IOException err) {  
-	        err.printStackTrace();  
-	    } catch (PathNotFoundException e) {
+		response.reset();
+		response.setContentType("application/x-gzip"); // gzipped text/xml
+		response.setHeader("Content-Disposition", "attachment;filename=export.xml.gz");
+		ServletOutputStream out = null;
+		GZIPOutputStream zout = null;
+		
+		try {
+			out = response.getOutputStream();
+			zout = new GZIPOutputStream(out);
+			// skipBinary=false , noRecurse: false
+			contentBean.getSession().exportSystemView(contentBean.getCurrentNode().getNode().getPath(), zout, false, false);
+		} catch (IOException err) {
+			err.printStackTrace();
+		} catch (PathNotFoundException e) {
 			e.printStackTrace();
 		} catch (RepositoryException e) {
 			e.printStackTrace();
-		} finally {  
-	        try {  
-	            if (out != null) {  
-	                out.close();  
-	            }  
-	        } catch (IOException err) {  
-	            err.printStackTrace();  
-	        }  
-	    }
+		} finally {
+			try {
+				if (zout != null) {
+					zout.close();
+				}
+			} catch (IOException err) {
+				err.printStackTrace();
+			}
+			try {
+				if (out != null) {
+					out.close();
+				}
+			} catch (IOException err) {
+				err.printStackTrace();
+			}
+		}
 	}
 
 }

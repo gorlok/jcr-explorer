@@ -3,19 +3,17 @@ package org.jcrexplorer.module.exim;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringBufferInputStream;
+import java.util.zip.GZIPInputStream;
 
-import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.jcr.ImportUUIDBehavior;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.RepositoryException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
 
+import org.apache.myfaces.custom.fileupload.UploadedFile;
 import org.jcrexplorer.Constants;
 import org.jcrexplorer.module.ModuleBean;
 
@@ -42,7 +40,9 @@ public class ExportImportBean extends ModuleBean {
 	private String importData;
 
 	private int exportView = EXPORT_SYSTEM_VIEW;
-
+	
+	private UploadedFile uploadedFile;
+	
 	public String exportData() {
 		OutputStream out = new ByteArrayOutputStream();
 		try {
@@ -65,43 +65,6 @@ public class ExportImportBean extends ModuleBean {
 		return "goToExportResults";
 	}
 	
-	public String downloadFile() 
-	throws PathNotFoundException, RepositoryException {
-	    HttpServletResponse response = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();  
-
-	    response.reset(); 
-	    response.setContentType("text/xml");  
-	    response.setHeader("Content-Disposition", "attachment;filename=export.xml");  
-	    //response.setContentLength(...);  
-	    ServletOutputStream out = null;  
-	    try {  
-	        out = response.getOutputStream();
-	        
-			if (exportView == EXPORT_SYSTEM_VIEW) {
-				contentBean.getSession().exportSystemView(
-						contentBean.getCurrentNode().getNode().getPath(), out,
-						!exportBinaries, !exportRecursive);
-			} else {
-				contentBean.getSession().exportDocumentView(
-						contentBean.getCurrentNode().getNode().getPath(), out,
-						!exportBinaries, !exportRecursive);
-			}
-			
-	        FacesContext.getCurrentInstance().getResponseComplete();
-	    } catch (IOException err) {  
-	        err.printStackTrace();  
-	    } finally {  
-	        try {  
-	            if (out != null) {  
-	                out.close();  
-	            }  
-	        } catch (IOException err) {  
-	            err.printStackTrace();  
-	        }  
-	    }
-	    return null;
-	}	
-
 	public String getExportResults() {
 		return exportResults;
 	}
@@ -130,7 +93,69 @@ public class ExportImportBean extends ModuleBean {
 		contentBean.refresh();
 		return Constants.OUTCOME_SUCCESS;
 	}
+	
+	public UploadedFile getFileupload() {
+		return null;
+	}
+	
+	private File tempFile = null;
+	
+	/**
+	 * @todo Move to ValueWrapper
+	 * @param file
+	 */
+	public void setFileupload(UploadedFile file) {
 
+		InputStream is = null;
+		FileOutputStream fos = null;
+		try {
+			// if no new binary is posted its nothing to do here
+			if (file == null)
+				return;
+
+			tempFile = File.createTempFile("import", "xml.gz");
+			is = (file.getInputStream());
+			fos = new FileOutputStream(tempFile);
+
+			byte[] buf = new byte[1024];
+			int len;
+			while ((len = is.read(buf)) > 0) {
+				fos.write(buf, 0, len);
+			}	
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (is != null) try { is.close(); } catch (Exception e) {}
+			if (fos != null) try { fos.close(); } catch (Exception e) {}
+		}
+	}
+
+	public String importDataFromFile() {
+		if ((tempFile == null)) {
+			addErrorMessage("No data to import!");
+			return Constants.OUTCOME_FAILURE;
+		}
+		GZIPInputStream in = null;
+		try {
+			in = new GZIPInputStream(new FileInputStream(tempFile));
+			contentBean.getSession().getWorkspace().importXML(
+					contentBean.getCurrentNode().getNode().getPath(), in,
+					importUUIDBehavior);
+		} catch (Exception ex) {
+			addErrorMessage("An " + ex.getClass().getName()
+					+ " occured while importing data: " + ex.getMessage());
+			return Constants.OUTCOME_FAILURE;
+		} finally {
+			if (in != null) try { in.close(); } catch (Exception e) {}
+		}
+		importData = "";
+		tempFile = null;
+		addInfoMessage("Data import successful.");
+		contentBean.refresh();
+		return Constants.OUTCOME_SUCCESS;
+	}
+	
 	public boolean isExportBinaries() {
 		return exportBinaries;
 	}

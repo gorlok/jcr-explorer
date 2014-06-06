@@ -66,11 +66,14 @@
 				<f:selectItems value="#{EximBean.exportViewList}" />
 			</h:selectOneMenu>
 		</h:panelGrid>
-		<h:commandButton action="#{EximBean.exportData}" value="Start export"
-			styleClass="submit" id="exportButton"/>
-		<h:outputLink value="download" target="_blank" styleClass="submit" style="color:white;" >
-			<h:outputText value="Export to file" />
-		</h:outputLink>
+		
+		<h:panelGroup>
+			<h:commandButton action="#{EximBean.exportData}" value="Start export"
+				styleClass="submit" id="exportButton"/>
+			<h:outputLink value="download" target="_blank" styleClass="submit" style="color:white;" >
+				<h:outputText value="Export to file" />
+			</h:outputLink>
+		</h:panelGroup>
 
 		<h:outputText value="Locking" />
 

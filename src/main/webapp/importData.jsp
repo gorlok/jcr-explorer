@@ -11,7 +11,7 @@
 
 	<%@include file="includes/header.jsp"%>
 
-	<h:form>
+	<h:form enctype="multipart/form-data">
 		<h:panelGroup rendered="#{ContentBean.session.live == true}" styleClass="fullSizeTable">
 			<h:panelGrid columns="1" styleClass="fullSizeTable">
 				<h:messages globalOnly="false" errorClass="errorMessage"
@@ -29,6 +29,12 @@
 						value="Start import" styleClass="button" />
 					<h:commandButton action="goToMainPage" immediate="true"
 						value="Cancel" />
+				</h:panelGroup>
+				<h:panelGroup>
+					<t:inputFileUpload id="myFileId" accept="application/x-gzip"
+						value="#{EximBean.fileupload}" />
+					<h:commandButton action="#{EximBean.importDataFromFile}"
+						value="Import from file" styleClass="button" />
 				</h:panelGroup>
 			</h:panelGrid>
 		</h:panelGroup>
